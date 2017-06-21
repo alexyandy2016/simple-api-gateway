@@ -8,8 +8,7 @@
                 <div class="row">
                     <div class="col-md-10">
                         <span class="method">{{ content.request.method }}</span>
-                        <span class="absolute-path">{{ content.request.path }}?</span>
-                        <span v-for="k,v in content.request.query" class="query-string">{{ v }} {{ k }}</span>
+                        <span class="absolute-path">{{ content.request.path }}?<span v-for="(k,v,index) in content.request.query" class="query-string">{{ v }}={{ k }}&</span></span>
                     </div>
                     <div class="col-md-2">
                         <span class="request-time"></span>
@@ -78,7 +77,7 @@
                 "contents": [{
                     "request": {
                         "path": "/api/QACenterContacts/CallForAnswer",
-                        "method": "GET",
+                        "method": "GE12312T",
                         "query": {
                             "operateType": "more",
                             "status": "1",
@@ -178,6 +177,7 @@
 </script>
 
 <style type="text/css">
+
     div {
         display: block;
     }
