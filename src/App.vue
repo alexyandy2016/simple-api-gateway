@@ -1,5 +1,7 @@
 <template>
+
     <div class="container-fluid" id="app">
+        <img src="./assets/logo.png" height="200" width="200"/>
         <div v-for="content in contents" class="message-warp">
             <div class="message-title">
                 <H5>REQUEST ID : {{ content.request.request_id.toUpperCase() }}</H5>
