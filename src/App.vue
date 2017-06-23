@@ -1,7 +1,10 @@
 <template>
 
     <div class="container-fluid" id="app">
-        <img src="./assets/logo.png" height="200" width="200"/>
+        <div class="images">
+            <img src="./assets/logo.png" height="200" width="200"/>
+        </div>
+
         <div v-for="content in contents" class="message-warp">
             <div class="message-title">
                 <H5>REQUEST ID : {{ content.request.request_id.toUpperCase() }}</H5>
@@ -10,7 +13,8 @@
                 <div class="row">
                     <div class="col-md-10">
                         <span class="method">{{ content.request.method }}</span>
-                        <span class="absolute-path">{{ content.request.path }}?<span v-for="(k,v,index) in content.request.query" class="query-string">{{ v }}={{ k }}&</span></span>
+                        <span class="absolute-path">{{ content.request.path }}?</span
+                        ><span v-for="(k,v,index) in content.request.query" class="query-string">{{ v }}={{ k }}&</span>
                     </div>
                     <div class="col-md-2">
                         <span class="request-time"></span>
@@ -79,7 +83,7 @@
                 "contents": [{
                     "request": {
                         "path": "/api/QACenterContacts/CallForAnswer",
-                        "method": "GE12312T",
+                        "method": "GET",
                         "query": {
                             "operateType": "more",
                             "status": "1",
