@@ -1,12 +1,15 @@
-var path = require('path')
-var webpack = require('webpack')
+var path = require('path');
+var webpack = require('webpack');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-    entry: './src/main.js',
+    entry: {
+        main: './src/main.js',
+    },
     output: {
         path: path.resolve(__dirname, './dist'),
-        publicPath: '/dist/',
-        filename: 'build.js'
+        publicPath: '',
+        filename: 'build_[hash].js'
     },
     module: {
         rules: [
@@ -32,6 +35,18 @@ module.exports = {
             }
         ]
     },
+    plugins: [
+        new HtmlWebpackPlugin({
+            title: 'My APP',
+            filename: 'index.html',
+            meta: [
+                {
+                    name: 'description',
+                    content: 'A better default template for html-webpack-plugin.'
+                }
+            ]
+        })
+    ],
     resolve: {
         alias: {
             'vue$': 'vue/dist/vue.esm.js'
