@@ -9,7 +9,7 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, './dist'),
         publicPath: '',
-        filename: 'build_[hash].js'
+        filename: '[name].[hash].js'
     },
     module: {
         rules: [
@@ -28,23 +28,27 @@ module.exports = {
             },
             {
                 test: /\.(png|jpg|gif|svg)$/,
-                loader: 'file-loader',
-                options: {
-                    name: '[name]_[hash].[ext]'
-                }
+                use: [
+                    {
+                        loader: 'url-loader',
+                        options: {
+                            limit: 25000
+                        }
+                    },
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            name: '[name].[hash].[ext]'
+                        }
+                    }
+                ]
             }
         ]
     },
     plugins: [
         new HtmlWebpackPlugin({
             title: 'My APP',
-            filename: 'index.html',
-            meta: [
-                {
-                    name: 'description',
-                    content: 'A better default template for html-webpack-plugin.'
-                }
-            ]
+            filename: 'index.html'
         })
     ],
     resolve: {
