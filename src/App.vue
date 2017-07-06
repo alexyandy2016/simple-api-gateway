@@ -1,5 +1,4 @@
 <template>
-
     <div class="container-fluid" id="app">
         <div class="images">
             <img src="./assets/logo.png" height="200" width="200"/>
@@ -14,7 +13,8 @@
                     <div class="col-md-10">
                         <span class="method">{{ content.request.method }}</span>
                         <span class="absolute-path">{{ content.request.path }}?</span
-                        ><span v-for="(k,v,index) in content.request.query" class="query-string">{{ v }}={{ k }}&</span>
+                        ><span v-for="(k,v,index) in content.request.query" class="query-string">{{ v }}={{ k
+                        }}&</span>
                     </div>
                     <div class="col-md-2">
                         <span class="request-time"></span>
@@ -39,7 +39,8 @@
                         </div>
                         <div class="col-md-8">
                             <h5>HEADERS</h5>
-                            <p v-for="k,v in content.request.headers" class="key-pair"><strong>{{ v }}: </strong>{{ k }}
+                            <p v-for="k,v in content.request.headers" class="key-pair"><strong>{{ v
+                                }}: </strong>{{ k }}
                             </p>
                         </div>
                     </div>
@@ -59,7 +60,8 @@
                     <div class="row">
                         <div class="col-md-4">
                             <h5>HEADERS</h5>
-                            <p v-for="k,v in content.response.headers" class="key-pair"><strong>{{ v }}: </strong>{{ k
+                            <p v-for="k,v in content.response.headers" class="key-pair"><strong>{{ v
+                                }}: </strong>{{ k
                                 }}
                             </p>
                         </div>
