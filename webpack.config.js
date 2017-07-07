@@ -22,7 +22,7 @@ module.exports = {
                     loaders: {
                         css: ExtractTextPlugin.extract({
                             use: 'css-loader',
-                            fallback: 'vue-style-loader' // <- 这是vue-loader的依赖，所以如果使用npm3，则不需要显式安装
+                            fallback: 'vue-style-loader'
                         })
                     }
                 }
@@ -66,7 +66,7 @@ module.exports = {
         hints: false
     },
     devtool: '#eval-source-map'
-}
+};
 
 if (process.env.NODE_ENV === 'production') {
     module.exports.devtool = '#source-map'
