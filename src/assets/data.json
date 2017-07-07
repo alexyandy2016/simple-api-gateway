@@ -3,7 +3,7 @@
     {
       "request": {
         "path": "/api/QACenterContacts/CallForAnswer",
-        "method": "GET1111",
+        "method": "GET",
         "query": {
           "operateType": "more",
           "status": "1",
