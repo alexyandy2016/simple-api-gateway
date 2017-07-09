@@ -12,7 +12,6 @@ function component() {
 
 document.body.appendChild(component());
 
-Vue.use(VueRouter)
 new Vue({
     el: '#app',
     render: h => h(App)

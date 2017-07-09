@@ -1,9 +1,5 @@
 <template>
     <div class="container-fluid" id="app">
-        <div class="images">
-            <img src="./assets/logo.png" height="200" width="200"/>
-        </div>
-
         <div v-for="content in contents" class="message-warp">
             <div class="message-title">
                 <H5>REQUEST ID : {{ content.request.request_id.toUpperCase() }}</H5>
@@ -60,10 +56,7 @@
                     <div class="row">
                         <div class="col-md-4">
                             <h5>HEADERS</h5>
-                            <p v-for="k,v in content.response.headers" class="key-pair"><strong>{{ v
-                                }}: </strong>{{ k
-                                }}
-                            </p>
+                            <p v-for="k,v in content.response.headers" class="key-pair"><strong>{{ v }}: </strong>{{ k }}</p>
                         </div>
                         <div class="col-md-8">
                             <h5>BODY</h5>
@@ -81,7 +74,7 @@
     export default {
         name: 'app',
         data() {
-            var json = require('./assets/data.json');
+            let json = require('./assets/data.json');
             return json
         },
     }
