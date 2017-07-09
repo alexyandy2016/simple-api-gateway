@@ -51,7 +51,7 @@ module.exports = {
             title: 'My APP',
             filename: 'index.html'
         }),
-        new ExtractTextPlugin('style.[hash].css')
+        new ExtractTextPlugin('[name].[hash].css')
     ],
     resolve: {
         alias: {
