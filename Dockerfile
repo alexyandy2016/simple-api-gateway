@@ -1,4 +1,4 @@
-FROM openresty/openresty:1.11.2.2-alpine-fat
+FROM openresty/openresty:1.11.2.5-alpine-fat
 RUN apk add --no-cache nettle libuuid ca-certificates
 WORKDIR /usr/local/openresty/nginx
 RUN \
