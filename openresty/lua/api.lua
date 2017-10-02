@@ -9,6 +9,11 @@ local http = require "resty.http"
 
 local DES_KEY = "des_key"
 local DES_IV = "des_iv"
+local HOST = "www.tomczhen.com"
+local IGNORE_HEADERS = {
+    ['Connection'] = "",
+    ['Transfer-Encoding'] = "",
+}
 
 local function des_encrypt(data)
     local ds, wk = des.new(DES_KEY, "cbc", DES_IV)
@@ -40,16 +45,13 @@ end
 
 local function send_request(request)
     local http_conn = http.new()
-    http_conn:set_timeout(2000)
-    http_conn:connect("127.0.0.1", 80)
-    local response, err = http_conn:request {
+    --http_conn:set_timeout(100)
+    local uri = "http://"..HOST .. request.path .. "?" .. ngx.encode_args(request.query)
+    local response, err = http_conn:request_uri(uri, {
         method = request.method,
-        --path = request.path,
-        path = "/test",
         headers = request.headers,
         body = request.body,
-        query = request.query,
-    }
+    })
 
     return response, err
 end
@@ -58,30 +60,31 @@ ngx.req.read_body()
 
 local request = {
     request_id = ngx.var.request_id,
-    version = ngx.req.http_version(),
-    host = ngx.req.host,
+    http_version = ngx.req.http_version(),
     method = ngx.req.get_method(),
-    headers = ngx.req.get_headers(20),
+    headers = ngx.req.get_headers(50),
     path = ngx.var.uri,
     query = ngx.req.get_uri_args(20),
     body = ngx.req.get_post_args(20),
 }
 
+request.headers["host"] = HOST
 local response, err = send_request(request)
 
 if response then
 
-    ngx.print(cjson.encode({
-        request = request,
-        response = {
-            status = response.status,
-            headers = response.headers,
-            body = response:read_body()
-        }
-    }))
+    for k, v in pairs(response.headers) do
+        if not IGNORE_HEADERS[k] then
+            ngx.header[k] = v
+        end
+    end
+    ngx.status = response.status
+    --ngx.print(cjson.encode(response.headers))
+    --ngx.print(cjson.encode(request.headers))
+    ngx.print(response.body)
 else
     ngx.print(cjson.encode({
-        message = "Fail To Request",
+        message = "Request fail",
         status = err
     }))
 end
