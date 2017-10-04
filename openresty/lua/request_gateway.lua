@@ -7,12 +7,16 @@ local resty_uuid = require "resty.uuid"
 local cjson = require "cjson"
 local http = require "resty.http"
 
+local zlib = require("zlib")
+local stream = zlib.inflate()
+
 local DES_KEY = "des_key"
 local DES_IV = "des_iv"
 local HOST = "ip.taobao.com"
 local IGNORE_HEADERS = {
     ['Connection'] = "",
     ['Transfer-Encoding'] = "",
+    ['Content-Encoding'] = "",
 }
 
 local function des_encrypt(data)
@@ -52,14 +56,14 @@ end
 local function send_request(request)
     request.headers["host"] = HOST
     local http_conn = http.new()
-    --http_conn:set_timeout(100)
+    http_conn:set_timeout(2000)
     local uri = "http://" .. HOST .. request.path .. "?" .. ngx.encode_args(request.query)
     local response, err = http_conn:request_uri(uri, {
         method = request.method,
         headers = request.headers,
         body = request.body,
     })
-
+    http_conn:set_keepalive()
     return response, err
 end
 
@@ -81,30 +85,39 @@ local requests = {
 local response, err = send_request(requests.request)
 
 if response then
-
     for k, v in pairs(response.headers) do
         if not IGNORE_HEADERS[k] then
             ngx.header[k] = v
         end
     end
 
-    requests["reponse"] = {
+    local encoding = response.headers['Content-Encoding']
+    local body = ""
+
+    if encoding == 'gzip' or encoding == 'deflate' or encoding == 'deflate-raw' then
+        body = stream(response.body)
+    else
+        body = response.body
+    end
+
+    requests["response"] = {
         headers = response.headers,
         status = response.status,
-        body = response.body
+        body = body
     }
 
     ngx.status = response.status
-
 else
-    requests["reponse"] = {
+    requests["response"] = {
         body = {
             message = "Request Fail!",
             status = err
         }
     }
-
 end
 
 save_2_redis(requests)
-ngx.print(requests.reponse.body)
+
+ngx.print(requests.response.body)
+
+
