@@ -5,10 +5,22 @@ services:
     build: .
     ports:
       - "8000:80"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./openresty/lua:/usr/local/openresty/nginx/lua
+      - ./openresty/nginx.conf:/usr/local/openresty/nginx/nginx.conf
     depends_on:
       - redis
+    networks:
+      - api_gateway
   redis:
     container_name: redis
-    image: redis:4.0.1-alpine
-    expose: 
-      - "6379"
+    image: redis:4.0.2-alpine
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      api_gateway:
+        aliases:
+          - redis
+networks:
+  api_gateway:
