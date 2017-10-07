@@ -3,12 +3,9 @@ local redis = require "resty.redis"
 local des = require "resty.nettle.des"
 local base64 = require "resty.nettle.base64"
 local pkcs7 = require "resty.nettle.padding.pkcs7"
-local resty_uuid = require "resty.uuid"
 local cjson = require "cjson"
 local http = require "resty.http"
-
 local zlib = require("zlib")
-local stream = zlib.inflate()
 
 local DES_KEY = "des_key"
 local DES_IV = "des_iv"
@@ -30,27 +27,48 @@ local function des_decrypt(data)
     return pkcs7.unpad(ds:decrypt(base64.decode(data)), 8)
 end
 
-local function save_2_redis(requests)
+local function init_redis(config)
+    local conf = {
+        ["host"] = config.host or "127.0.0.1",
+        ["port"] = config.port or 6379,
+        ["database"] = config.database or 0,
+        ["timeout"] = config.timeout or 1000,
+        ["max_idle_time"] = config.keepalive or 10000,
+        ["pool_size"] = config.pool_size or 100
+    }
+    local conn = redis:new()
+    conn:set_timeout(conf.timeout)
+    conn:set_keepalive(conf.max_idle_time, conf.pool_size)
+    conn:connect(conf.host, conf.port)
+    return conn
+end
 
-    local redis_conn = redis:new()
-    redis_conn:set_timeout(1000)
-    local status, err = redis_conn:set_keepalive(10000, 500)
-    local status, err = redis_conn:connect("redis", 6379)
+local function decoding_gzip(response)
+    local stream = zlib.inflate()
+    local encoding = response.headers['Content-Encoding']
+    local body = ""
 
-    if not status then
-        ngx.say("Failed To Connect Redis : ", err)
-        return
+    if encoding == 'gzip' or encoding == 'deflate' or encoding == 'deflate-raw' then
+        body = stream(response.body)
+    else
+        body = response.body
     end
 
+    return body
+end
+
+local function save_2_redis(requests)
+
+    local redis_conn = init_redis({ host = "redis" })
+
     local expire_time = 24 * 60 * 60
-    local key = ngx.var.remote_addr .. ":" .. ngx.today():gsub("-", "")
+    local zset_key = "reqs:" .. ngx.var.remote_addr .. ":" .. ngx.today():gsub("-", ""):sub(3)
 
     redis_conn:init_pipeline()
-    redis_conn:zadd(key, ngx.now(), cjson.encode(requests))
-    redis_conn:expire(key, expire_time)
+    redis_conn:zadd(zset_key, ngx.now(), cjson.encode(requests))
+    redis_conn:expire(zset_key, expire_time)
     redis_conn:commit_pipeline()
 
-    local status, err = redis_conn:close()
 end
 
 local function send_request(request)
@@ -91,19 +109,10 @@ if response then
         end
     end
 
-    local encoding = response.headers['Content-Encoding']
-    local body = ""
-
-    if encoding == 'gzip' or encoding == 'deflate' or encoding == 'deflate-raw' then
-        body = stream(response.body)
-    else
-        body = response.body
-    end
-
     requests["response"] = {
         headers = response.headers,
         status = response.status,
-        body = body
+        body = decoding_gzip(response)
     }
 
     ngx.status = response.status
