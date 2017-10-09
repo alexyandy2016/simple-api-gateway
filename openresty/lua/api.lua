@@ -9,6 +9,8 @@ local ngx_re = require "ngx.re"
 local redis = require "resty.redis"
 local cjson = require "cjson"
 
+local REDIS_HOST = "redis"
+
 local status_message = {
     ["HTTP_NOT_FOUND"] = function(message)
         local s = message or "Not Found"
@@ -37,22 +39,27 @@ local status_message = {
 }
 
 local function init_redis(config)
+    local c = config or {}
+
     local conf = {
-        ["host"] = config.host or "127.0.0.1",
-        ["port"] = config.port or 6379,
-        ["database"] = config.database or 0,
-        ["timeout"] = config.timeout or 1000,
-        ["max_idle_time"] = config.keepalive or 10000,
-        ["pool_size"] = config.pool_size or 100
+        ["host"] = c.host or REDIS_HOST,
+        ["port"] = c.port or 6379,
+        ["database"] = c.database or 0,
+        ["timeout"] = c.timeout or 1000,
+        ["max_idle_time"] = c.keepalive or 10000,
+        ["pool_size"] = c.pool_size or 100
     }
+
     local conn = redis:new()
     conn:set_timeout(conf.timeout)
     conn:set_keepalive(conf.max_idle_time, conf.pool_size)
     conn:connect(conf.host, conf.port)
+
     return conn
 end
 
 local function serialize(res, format)
+
     local serialize_format = format or "json"
 
     local fmt = {
@@ -68,27 +75,18 @@ local function serialize(res, format)
     if response then
         return response
     else
-        return serialize(error)
+        return error
     end
 end
 
 local function query_clinets(client)
 
     local c = client or "*"
-    local redis_conn = init_redis({ host = "redis" })
+    local redis_conn = init_redis()
     local keys_pattern = "reqs:" .. c .. ":*"
     local redis_keys, error = redis_conn:keys(keys_pattern)
 
-    if not redis_keys then
-        return error
-    end
-
-    if #redis_keys == 0 then
-        local msg = string.format("Client : %s Not Found Any Requests", client)
-        return status_message.HTTP_NOT_FOUND(msg)
-    else
-        return redis_keys
-    end
+    return redis_keys, error
 end
 
 local function query_requests(path_params, query_params)
@@ -103,16 +101,6 @@ local function query_requests(path_params, query_params)
     end
     return res
 end
-
-local function is_format_ip(param)
-    return false
-end
-
-local function is_format_date(param)
-    return true
-end
-
-local query_params = ngx.req.get_uri_args(20)
 
 local urls = {
     ["/clients"] = {
@@ -143,11 +131,13 @@ local urls = {
         end
     },
     ["/requests/<ip>"] = {
-        ["GET"] = function()
+        ["GET"] = function(path_params, query_params)
+            return path_params.ip
         end
     },
     ["/requests/<ip>/<date>"] = {
-        ["GET"] = function()
+        ["GET"] = function(path_params, query_params)
+            return path_params
         end
     },
     ["/"] = {
@@ -156,37 +146,33 @@ local urls = {
     }
 }
 
-local format = {
+local is_format = {
     ["ip"] = function(value)
         return true
     end,
     ["date"] = function(value)
         return true
-    end,
-    [""] = function(value)
-        return true
-    end,
-    ["default"] = function(p1, p2)
-        return p1 == p2
     end
 }
 
-local function split_uri(uri)
-    return ngx_re.split(uri, "/", nil, { pos = 2 })
-end
-
 local function match_path_params(p1, p2)
 
-    local regex = string.format("(?%s.*)$", p1)
-    local m = ngx.re.match(p2, regex)
-
-    return m
+    local regex = string.format("(?%s.*)", p1)
+    local m = ngx.re.match(p2, regex, "jo")
+    local k = ngx.re.match(p1, "^<(.*)>$", "jo")
+    if m and k then
+        return k[1], m[1]
+    end
 end
 
 local function simple_router(uri)
 
-    local m = {}
-    local p = split_uri(uri)
+    local m = {
+        ["path"] = "",
+        ["params"] = {}
+    }
+
+    local p = ngx_re.split(uri, "/", nil, { pos = 2 })
 
 
     if #p == 0 then
@@ -194,14 +180,14 @@ local function simple_router(uri)
     end
 
     for k in pairs(urls) do
-        local tmp = split_uri(k)
+        local tmp = ngx_re.split(k, "/", nil, { pos = 2 })
         if #tmp == #p then
             for i = 1, #p do
                 if p[i] == tmp[i] then
                 else
-                    local n = match_path_params(tmp[i], p[i])
-                    if n then
-                        m["params"] = n
+                    local k, v = match_path_params(tmp[i], p[i])
+                    if k then
+                        m["params"][k] = v
                     else
                         break
                     end
@@ -220,17 +206,17 @@ local response = ""
 
 if match then
 
-    local path_func = urls[match.path]
+    local path = urls[match.path]
 
-    if not path_func then
+    if not path then
         response = status_message.HTTP_NOT_FOUND()
     else
-        local method_func = path_func[method]
-        if not method_func then
+        local func = path[method]
+        if not func then
             local msg = string.format("路径 %s 的 %s 方法未实现", match.path, method)
             response = status_message.HTTP_METHOD_NOT_IMPLEMENTED(msg)
         else
-            response = func[method](match.params, ngx.req.get_uri_args(20))
+            response = func(match.params, ngx.req.get_uri_args(20))
         end
     end
 else
