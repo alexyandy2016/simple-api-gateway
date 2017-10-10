@@ -90,15 +90,21 @@ local function query_clinets(client)
 end
 
 local function query_requests(path_params, query_params)
-    local ip = path_params[2] or "*"
-    local time_stamp = params["time"] or ""
-
+    local res = {}
+    local ip = path_params.ip
+    local date = path_params.date
+    local keys_pattern = "reqs:" .. ip .. ":" .. date
     local redis_conn = init_redis()
-    local res, err = redis_conn:zrange("172.18.0.1:171011", 0, -1)
+    local key, err = redis_conn:zrange(keys_pattern, 0, -1)
 
-    if not res then
+    if not key then
         return err
     end
+
+    for k, v in pairs(key) do
+        table.insert(res, cjson.decode(v))
+    end
+
     return res
 end
 
@@ -137,7 +143,12 @@ local urls = {
     },
     ["/requests/<ip>/<date>"] = {
         ["GET"] = function(path_params, query_params)
-            return path_params
+            local requests = query_requests(path_params)
+            if #requests == 0 then
+                return status_message.HTTP_NOT_FOUND()
+            else
+                return requests
+            end
         end
     },
     ["/"] = {
