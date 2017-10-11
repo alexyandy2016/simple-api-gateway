@@ -8,8 +8,6 @@ services:
       - "8000:8000"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ./openresty/lua:/usr/local/openresty/nginx/lua
-      - ./openresty/nginx.conf:/usr/local/openresty/nginx/nginx.conf
     depends_on:
       - redis
     networks:

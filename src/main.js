@@ -1,8 +1,7 @@
 
 import Vue from 'vue';
-import VueRouter from 'vue-router';
 import axios from 'axios';
-import App from './App.vue';
+import requests from './requests.vue';
 
 function component() {
     var element = document.createElement('div');
@@ -14,7 +13,7 @@ document.body.appendChild(component());
 
 new Vue({
     el: '#app',
-    render: h => h(App)
+    render: h => h(requests)
 });
 
 

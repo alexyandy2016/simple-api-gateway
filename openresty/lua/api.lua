@@ -80,13 +80,31 @@ local function serialize(res, format)
 end
 
 local function query_clinets(client)
-
     local c = client or "*"
+    local res = {}
+    local regex = "(.*):(?<ip>.*):(?<date>.*)"
     local redis_conn = init_redis()
     local keys_pattern = "reqs:" .. c .. ":*"
-    local redis_keys, error = redis_conn:keys(keys_pattern)
+    local keys, error = redis_conn:keys(keys_pattern)
 
-    return redis_keys, error
+    if not keys then
+        return error
+    end
+
+    local tmp = {}
+    for k, v in pairs(keys) do
+        local m = ngx.re.match(v, regex, "jo")
+        if not tmp[m.ip] then
+            tmp[m.ip] = { ["client"] = m.ip, ["uri"] = "/requests/" .. m.ip, ["requests"] = {} }
+        end
+        table.insert(tmp[m.ip]["requests"], { ["date"] = m.date, ["uri"] = "/requests/" .. m.ip .. "/" .. m.date })
+    end
+
+    for k, v in pairs(tmp) do
+        table.insert(res, v)
+    end
+
+    return res
 end
 
 local function query_requests(path_params, query_params)
@@ -95,10 +113,10 @@ local function query_requests(path_params, query_params)
     local date = path_params.date
     local keys_pattern = "reqs:" .. ip .. ":" .. date
     local redis_conn = init_redis()
-    local key, err = redis_conn:zrange(keys_pattern, 0, -1)
+    local key, error = redis_conn:zrange(keys_pattern, 0, -1)
 
     if not key then
-        return err
+        return error
     end
 
     for k, v in pairs(key) do
@@ -109,36 +127,25 @@ local function query_requests(path_params, query_params)
 end
 
 local urls = {
-    ["/clients"] = {
-        ["GET"] = function(query_params)
-            local clients = query_clinets()
-            if #clients == 0 then
-                return status_message.HTTP_NOT_FOUND()
-            else
-                return clients
-            end
-        end
-    },
-    ["/clients/<ip>"] = {
-        ["GET"] = function(path_params, query_params)
-            local client_ip = path_params.ip
-            local clients = query_clinets(client_ip)
-
-            if #clients == 0 then
-                return status_message.HTTP_NOT_FOUND()
-            else
-                return clients
-            end
-        end
-    },
     ["/requests"] = {
         ["GET"] = function(query_params)
-            return query_requests()
+            local clients = query_clinets()
+            --if #clients == 0 then
+            --    return status_message.HTTP_NOT_FOUND()
+            --else
+            return clients
+            --end
         end
     },
     ["/requests/<ip>"] = {
         ["GET"] = function(path_params, query_params)
-            return path_params.ip
+            local client_ip = path_params.ip
+            local clients = query_clinets(client_ip)
+            if #clients == 0 then
+                return status_message.HTTP_NOT_FOUND()
+            else
+                return clients
+            end
         end
     },
     ["/requests/<ip>/<date>"] = {
@@ -176,7 +183,7 @@ local function match_path_params(p1, p2)
     end
 end
 
-local function simple_router(uri)
+local function simple_routes(uri)
 
     local m = {
         ["path"] = "",
@@ -211,7 +218,7 @@ local function simple_router(uri)
     return m
 end
 
-local match = simple_router(ngx.var.uri)
+local match = simple_routes(ngx.var.uri)
 local method = ngx.req.get_method()
 local response = ""
 

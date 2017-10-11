@@ -1,6 +1,6 @@
 <template>
     <div class="container-fluid" id="app">
-        <div v-for="content in contents" class="message-warp">
+        <div v-for="request in requests" class="message-warp">
             <div class="message-title">
                 <H5>REQUEST ID : {{ content.request.request_id.toUpperCase() }}</H5>
             </div>
@@ -56,7 +56,8 @@
                     <div class="row">
                         <div class="col-md-4">
                             <h5>HEADERS</h5>
-                            <p v-for="k,v in content.response.headers" class="key-pair"><strong>{{ v }}: </strong>{{ k }}</p>
+                            <p v-for="k,v in content.response.headers" class="key-pair"><strong>{{ v }}: </strong>{{ k
+                                }}</p>
                         </div>
                         <div class="col-md-8">
                             <h5>BODY</h5>
@@ -70,15 +71,15 @@
     </div>
 </template>
 
-<script>
-    export default {
-        name: 'app',
-        data() {
-            let json = require('./assets/data.json');
-            return json
-        },
-    }
-</script>
+<!--<script>-->
+    <!--export default {-->
+        <!--name: 'app',-->
+        <!--data() {-->
+            <!--let requests = require('./assets/requests.json');-->
+            <!--return requests-->
+        <!--},-->
+    <!--}-->
+<!--</script>-->
 
 <style type="text/css">
 
