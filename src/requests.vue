@@ -1,5 +1,17 @@
 <template>
     <div class="container-fluid" id="app">
+        <div class="row">
+            <div v-for="client in clients" class="message-warp">
+                <div class="message-title">
+                    <h5>CLIENT : {{ client.client }}</h5>
+                </div>
+                <div v-for="req in client.requests" class="message-list">
+                    <div class="row">
+                        <div class="col-md-10"><h5>URI : {{ req.date }}</h5></div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div v-for="req in requests" class="message-warp">
             <div class="message-title">
                 <H5>REQUEST ID : {{ req.request_id.toUpperCase() }}</H5>
@@ -61,7 +73,7 @@
                         </div>
                         <div class="col-md-8">
                             <h5>BODY</h5>
-                            <span class="body">{{ req.response.body }}</span>
+                            <span class="body">{{ JSON.parse(req.response.body) }}</span>
                         </div>
                     </div>
                 </div>
@@ -76,17 +88,24 @@
         name: 'app',
         data() {
             return {
+                clients: [],
                 requests: []
             }
         },
         mounted: function () {
-            this.getRequestsList();
+            this.getClientsList();
         },
         methods: {
-            getRequestsList() {
-                this.axios.get("/requests"+"/172.18.0.1"+"/171013")
+            getRequestsList(uri) {
+                this.axios.get(uri)
                     .then(response => {
                         this.requests = response.data;
+                    })
+            },
+            getClientsList() {
+                this.axios.get("/requests")
+                    .then(response => {
+                        this.clients = response.data;
                     })
             }
         }
