@@ -1,19 +1,19 @@
 <template>
     <div class="container-fluid" id="app">
-        <div v-for="request in requests" class="message-warp">
+        <div v-for="req in requests" class="message-warp">
             <div class="message-title">
-                <H5>REQUEST ID : {{ content.request.request_id.toUpperCase() }}</H5>
+                <H5>REQUEST ID : {{ req.request_id.toUpperCase() }}</H5>
             </div>
             <div class="message-list">
                 <div class="row">
                     <div class="col-md-10">
-                        <span class="method">{{ content.request.method }}</span>
-                        <span class="absolute-path">{{ content.request.path }}?</span
-                        ><span v-for="(k,v,index) in content.request.query" class="query-string">{{ v }}={{ k
+                        <span class="method">{{ req.request.method }}</span>
+                        <span class="absolute-path">{{ req.request.path }}?</span
+                        ><span v-for="(k,v,index) in req.request.query" class="query-string">{{ v }}={{ k
                         }}&</span>
                     </div>
                     <div class="col-md-2">
-                        <span class="request-time"></span>
+                        <span class="request-time">{{ req.response.Date }}</span>
                         <span class="request-from">From 192.168.100.100</span>
                     </div>
                 </div>
@@ -23,45 +23,45 @@
                     <div class="row">
                         <div class="col-md-4">
                             <h5>FORM/POST PARAMETERS</h5>
-                            <em v-if="JSON.stringify(content.request.body) == '{}'">None</em>
-                            <p v-else v-for="k,v in content.request.body" class="key-pair">
+                            <em v-if="JSON.stringify(req.request.body) == '{}'">None</em>
+                            <p v-else v-for="k,v in req.request.body" class="key-pair">
                                 <strong>{{ v }}: </strong>{{ k }}
                             </p>
                             <h5>QUERY STRING</h5>
-                            <em v-if="JSON.stringify(content.request.query) == '{}'">None</em>
-                            <p v-else v-for="k,v in content.request.query" class="key-pair">
+                            <em v-if="JSON.stringify(req.request.query) == '{}'">None</em>
+                            <p v-else v-for="k,v in req.request.query" class="key-pair">
                                 <strong>{{ v }}: </strong>{{ k }}
                             </p>
                         </div>
                         <div class="col-md-8">
                             <h5>HEADERS</h5>
-                            <p v-for="k,v in content.request.headers" class="key-pair"><strong>{{ v
+                            <p v-for="k,v in req.request.headers" class="key-pair"><strong>{{ v
                                 }}: </strong>{{ k }}
                             </p>
                         </div>
                     </div>
                     <h5>RAW BODY</h5>
                     <div class="request-body">
-                        <em v-if="JSON.stringify(content.request.body) == '{}'">None</em>
-                        <p v-else>{{ content.request.body }}</p>
+                        <em v-if="JSON.stringify(req.request.body) == '{}'">None</em>
+                        <p v-else>{{ req.request.body }}</p>
                     </div>
                 </div>
                 <div class="response-detail">
                     <h5>RESPONSE</h5>
                     <div class="row">
                         <div class="col-md-4">
-                            <span class="resp-status">STATUS <strong>{{ content.response.status }}</strong></span>
+                            <span class="resp-status">STATUS <strong>{{ req.response.status }}</strong></span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-4">
                             <h5>HEADERS</h5>
-                            <p v-for="k,v in content.response.headers" class="key-pair"><strong>{{ v }}: </strong>{{ k
+                            <p v-for="k,v in req.response.headers" class="key-pair"><strong>{{ v }}: </strong>{{ k
                                 }}</p>
                         </div>
                         <div class="col-md-8">
                             <h5>BODY</h5>
-                            <span class="body">{{ content.response.body }}</span>
+                            <span class="body">{{ req.response.body }}</span>
                         </div>
                     </div>
                 </div>
@@ -71,15 +71,27 @@
     </div>
 </template>
 
-<!--<script>-->
-    <!--export default {-->
-        <!--name: 'app',-->
-        <!--data() {-->
-            <!--let requests = require('./assets/requests.json');-->
-            <!--return requests-->
-        <!--},-->
-    <!--}-->
-<!--</script>-->
+<script>
+    export default {
+        name: 'app',
+        data() {
+            return {
+                requests: []
+            }
+        },
+        mounted: function () {
+            this.getRequestsList();
+        },
+        methods: {
+            getRequestsList() {
+                this.axios.get("/requests"+"/172.18.0.1"+"/171013")
+                    .then(response => {
+                        this.requests = response.data;
+                    })
+            }
+        }
+    }
+</script>
 
 <style type="text/css">
 
