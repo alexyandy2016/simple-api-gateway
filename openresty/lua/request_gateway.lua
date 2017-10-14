@@ -1,31 +1,14 @@
 local redis = require "resty.redis"
-
-local des = require "resty.nettle.des"
-local base64 = require "resty.nettle.base64"
-local pkcs7 = require "resty.nettle.padding.pkcs7"
 local cjson = require "cjson"
 local http = require "resty.http"
 local zlib = require("zlib")
 
-local DES_KEY = "des_key"
-local DES_IV = "des_iv"
 local HOST = "ip.taobao.com"
 local IGNORE_HEADERS = {
     ['Connection'] = "",
     ['Transfer-Encoding'] = "",
     ['Content-Encoding'] = "",
 }
-
-local function des_encrypt(data)
-    local ds, wk = des.new(DES_KEY, "cbc", DES_IV)
-    return base64.encode(ds:encrypt(pkcs7.pad(data, 8)))
-end
-
-local function des_decrypt(data)
-
-    local ds, wk = des.new(DES_KEY, "cbc", DES_IV)
-    return pkcs7.unpad(ds:decrypt(base64.decode(data)), 8)
-end
 
 local function init_redis(config)
     local conf = {

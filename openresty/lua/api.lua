@@ -95,9 +95,9 @@ local function query_clinets(client)
     for k, v in pairs(keys) do
         local m = ngx.re.match(v, regex, "jo")
         if not tmp[m.ip] then
-            tmp[m.ip] = { ["client"] = m.ip, ["uri"] = "/requests/" .. m.ip, ["requests"] = {} }
+            tmp[m.ip] = { ["client"] = m.ip, ["uri"] = "/api/requests/" .. m.ip, ["requests"] = {} }
         end
-        table.insert(tmp[m.ip]["requests"], { ["date"] = m.date, ["uri"] = "/requests/" .. m.ip .. "/" .. m.date })
+        table.insert(tmp[m.ip]["requests"], { ["date"] = m.date, ["uri"] = "/api/requests/" .. m.ip .. "/" .. m.date })
     end
 
     for k, v in pairs(tmp) do
@@ -127,7 +127,7 @@ local function query_requests(path_params, query_params)
 end
 
 local urls = {
-    ["/requests"] = {
+    ["/api/requests"] = {
         ["GET"] = function(query_params)
             local clients = query_clinets()
             --if #clients == 0 then
@@ -137,7 +137,7 @@ local urls = {
             --end
         end
     },
-    ["/requests/<ip>"] = {
+    ["/api/requests/<ip>"] = {
         ["GET"] = function(path_params, query_params)
             local client_ip = path_params.ip
             local clients = query_clinets(client_ip)
@@ -148,7 +148,7 @@ local urls = {
             end
         end
     },
-    ["/requests/<ip>/<date>"] = {
+    ["/api/requests/<ip>/<date>"] = {
         ["GET"] = function(path_params, query_params)
             local requests = query_requests(path_params)
             if #requests == 0 then
@@ -158,7 +158,7 @@ local urls = {
             end
         end
     },
-    ["/"] = {
+    ["/api"] = {
         ["GET"] = function()
         end
     }

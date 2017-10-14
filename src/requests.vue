@@ -7,7 +7,7 @@
                 </div>
                 <div v-for="req in client.requests" class="message-list">
                     <div class="row">
-                        <div class="col-md-10"><h5>URI : {{ req.date }}</h5></div>
+                        <div v-on:click="getRequestsList(req.uri)" class="col-md-10"><h5>URI : {{ req.date }}</h5></div>
                     </div>
                 </div>
             </div>
@@ -26,7 +26,6 @@
                     </div>
                     <div class="col-md-2">
                         <span class="request-time">{{ req.response.Date }}</span>
-                        <span class="request-from">From 192.168.100.100</span>
                     </div>
                 </div>
             </div>
@@ -73,7 +72,7 @@
                         </div>
                         <div class="col-md-8">
                             <h5>BODY</h5>
-                            <span class="body">{{ JSON.parse(req.response.body) }}</span>
+                            <span class="body">{{ req.response.body }}</span>
                         </div>
                     </div>
                 </div>
@@ -103,7 +102,7 @@
                     })
             },
             getClientsList() {
-                this.axios.get("/requests")
+                this.axios.get("/api/requests")
                     .then(response => {
                         this.clients = response.data;
                     })
