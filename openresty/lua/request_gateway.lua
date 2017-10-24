@@ -4,7 +4,7 @@ local http = require "resty.http"
 local zlib = require("zlib")
 
 local HOST = "ip.taobao.com"
-local SCHEME = "http://"
+local SCHEME = "http"
 local IGNORE_HEADERS = {
     ['Connection'] = "",
     ['Transfer-Encoding'] = "",
@@ -58,7 +58,7 @@ local function send_request(request)
     request.headers["host"] = HOST
     local http_conn = http.new()
     http_conn:set_timeout(2000)
-    local uri = SCHEME .. HOST .. request.path .. "?" .. ngx.encode_args(request.query)
+    local uri = SCHEME .. "://" .. HOST .. request.path .. "?" .. ngx.encode_args(request.query)
     local response, err = http_conn:request_uri(uri, {
         method = request.method,
         headers = request.headers,
