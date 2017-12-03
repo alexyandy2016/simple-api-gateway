@@ -8,18 +8,7 @@
 
 ## 构建与部署
 
-``` bash
-# install dependencies
-npm install
-
-# serve with hot reload at localhost:8080
-npm run dev
-
-# build for production with minification
-npm run build
-```
-
-前端 build 完成后，执行 `docker-compose build` 构建 Docker 镜像，可以根据需要调整编排文件中暴露的端口。
+执行 `docker-compose build` 构建 Docker 镜像，可以根据需要调整编排文件中暴露的端口。
 
 默认转发请求到 `http://ip.taobao.com`，可以根据需要修改 `openresty/lua/request_gatteway.lua` 中的 `HOST` 与 `SCHEME` 变量值进行修改。
 
