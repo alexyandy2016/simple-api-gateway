@@ -4,6 +4,8 @@ services:
     container_name: api-gateway
     build: .
     ports:
-      - "80:80"
+      - "8000:80"
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - ./lua:/usr/local/openresty/nginx/lua
+      - ./sample.nginx:/usr/local/openresty/nginx/conf/nginx.conf
