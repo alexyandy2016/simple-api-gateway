@@ -12,27 +12,46 @@ http {
     sendfile        on;
     keepalive_timeout  60;
 
-    lua_shared_dict config 10m;
+    lua_shared_dict configs 10m;
     init_by_lua_file lua/init.lua;
-
+    log_format request_log '$remote_addr - $status "$response_body';
     server {
+
         listen       80;
         server_name  localhost;
         lua_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
         lua_ssl_verify_depth 5;
 
         set_by_lua_block $backend {
-            local config = ngx.shared.config
-            return config:get("BACKEND")
-        }
+        local configs = ngx.shared.configs
+            return configs:get("BACKEND")
+    }
 
         location / {
             lua_code_cache off;
-
+            default_type application/json;
             access_by_lua_file lua/req_recorder.lua;
-            proxy_pass http://$backend;
-            body_filter_by_lua_file lua/res_recorder.lua;
+
+            #proxy_pass http://$backend;
+            set $response_body "";
+            body_filter_by_lua_file lua/resp_body_recorder.lua;
+            header_filter_by_lua_file lua/resp_header_recorder.lua;
+
+            log_by_lua_block {
+            local cjson = require "cjson"
+                ngx.log(ngx.STDERR,cjson.encode(ngx.ctx.log))
         }
+
+            content_by_lua_block {
+            local cjson = require "cjson"
+                local message = {
+            ["message"]="ok",
+            }
+            ngx.say(cjson.encode(message))
+        }
+            access_log logs/access.log request_log;
+        }
+
 
         error_page   500 502 503 504  /50x.html;
         location = /50x.html {

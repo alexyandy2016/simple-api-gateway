@@ -3,6 +3,8 @@ services:
   openresty:
     container_name: api-gateway
     build: .
+    labels:
+      containerName: api-gateway
     ports:
       - "8000:80"
     volumes:
