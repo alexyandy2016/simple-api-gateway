@@ -2,7 +2,7 @@ local zlib = require("zlib")
 local cjson = require "cjson"
 local ngx_re = require "ngx.re"
 
-local request_headers = ngx.req.get_headers(20)
+local request_headers = ngx.req.get_headers()
 
 local log = {
     client_ip = ngx.var.remote_addr,
@@ -27,9 +27,9 @@ local function compress_body(c_type)
         data = body
     end
 
-    if c_type == "application/json" and data ~= nil then
-        data = cjson.decode(data)
-    end
+    --if c_type == "application/json" and data ~= nil then
+    --    data = cjson.decode(data)
+    --end
 
     return data
 end
@@ -47,6 +47,5 @@ if content_type then
         end
     end
     log["request_body"] = request_body
+    ngx.var.log_request_body = request_body
 end
-
-ngx.ctx.log = log

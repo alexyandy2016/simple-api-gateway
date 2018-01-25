@@ -1,5 +1,6 @@
 version: "3"
 services:
+
   openresty:
     container_name: api-gateway
     build: .
@@ -7,6 +8,12 @@ services:
       - "80:80"
     volumes:
       - /etc/localtime:/etc/localtime:ro
+    logging:
+      driver: "syslog"
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "{{.Name}}"
+
   elasticsearch:
     container_name: elasticsearch
     image: docker.elastic.co/elasticsearch/elasticsearch:6.1.1
@@ -22,21 +29,26 @@ services:
         hard: -1
     volumes:
       - es-data:/usr/share/elasticsearch/data
+
   logstash:
     container_name: logstash
     image: docker.elastic.co/logstash/logstash:6.1.1
     ports:
       - "9600:9600"
+      - "5000:5000/udp"
+    links:
+      - elasticsearch
     volumes:
-      - ./elk/logstash/pipeline:/usr/share/logstash/pipeline
-      - ./elk/logstash/settings:/usr/share/logstash/config
+      - ./elk/logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./elk/logstash/settings:/usr/share/logstash/config:ro
+
   kibana:
     container_name: kibana
     image: docker.elastic.co/kibana/kibana:6.1.1
     ports:
-      - "5601:89"
+      - "5601:5601"
     links:
       - elasticsearch
+
 volumes:
   es-data:
-
