@@ -16,9 +16,9 @@ http {
     init_by_lua_file lua/init.lua;
     log_format request_log escape=json '{"request_id":"$request_id","time_local":"$time_local",'
     '"remote_addr":"$remote_addr","user_agent":"$http_user_agent","method":"$request_method","uri":"$uri","query_string":"$query_string","request_time":"$request_time",'
-    '"request_headers":{"content_type":"$http_content_type","cache_control":"$http_cache_control"},'
+    '"request_headers":{"Accept":"$http_accept","Cache-Control":"$http_cache_control"},'
     '"request_body":"$log_request_body",'
-    '"response_headers":{"content_type":"$upstream_http_content_type"},'
+    '"response_headers":{"Content-Type":"$upstream_http_content_type","Cache-Control":"$upstream_http_cache_control"},'
     '"response_status":$status,'
     '"response_body":"$response_body"}';
 
